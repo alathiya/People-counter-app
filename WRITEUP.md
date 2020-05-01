@@ -2,8 +2,11 @@
 
 Detect people in a designated area and determine the number of people in the frame, the average time they are in the frame, and the total count. Gain important business insight using the information generated.
 
-Command used to run the app: 
+Command used to run the app for: SSD Mobilenet V2 model
 python main.py -i resources/Pedestrian_Detect_2_1_1.mp4 -m frozen_inference_graph.xml -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so -d CPU -pt 0.6 | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size 768x432 -framerate 24 -i - http://0.0.0.0:3004/fac.ffm
+
+Command used to run the app for: person-detection-retail-0013 
+python main.py -i resources/Pedestrian_Detect_2_1_1.mp4 -m person-detection-retail-0013.xml -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so -d CPU -pt 0.6 | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size 768x432 -framerate 24 -i - http://0.0.0.0:3004/fac.ffm
 
 ## Explaining Custom Layers
 
@@ -76,6 +79,23 @@ deployed edge model. The potential effects of each of these are as follows...
 
 ## Model Research
 
+Tried 3 tensorflow model conversion approach as listed below: For all three models same problem related to missing frame is observed. Due to missing frame total_count keeps increasing as every time box is missing from frame, count increases by 1 in next frame when box reappears. 
+
+So after trying and converting all three model, I ran inference on person-detection-retail-0013 from openvino model zoo. 
+
+Model 1
+Converted tensorflow SSD Mobilenet V1 model into IR representation. Steps to convert model are listed below: 
+
+- Download the model from below given link using wget command into workspace
+http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz
+
+- Unzip the model directory using tar -xvf command into workspace 
+
+- Run the following command to generate IR representation. 
+python mo_tf.py --input_model /home/workspace/ssd_mobilenet_v1_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_use_custom_operations_config extensions/front/tf/ssd_v2_support.json --tensorflow_object_detection_api_pipeline_config /home/workspace/ssd_mobilenet_v1_coco_2018_01_28/pipeline.config --reverse_input_channels --output_dir /home/workspace/
+
+
+Model 2 
 Converted tensorflow SSD Mobilenet V2 model into IR representation. Steps to convert model are listed below: 
 
 - Download the model from below given link using wget command into workspace
@@ -86,3 +106,13 @@ http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v2_coco_201
 - Run the following command to generate IR representation. 
 python mo_tf.py --input_model /home/workspace/ssd_mobilenet_v2_coco_2018_03_29/frozen_inference_graph.pb --tensorflow_use_custom_operations_config extensions/front/tf/ssd_v2_support.json --tensorflow_object_detection_api_pipeline_config /home/workspace/ssd_mobilenet_v2_coco_2018_03_29/pipeline.config --reverse_input_channels --output_dir /home/workspace/
 
+Model 3
+Converted tensorflow SSD Inception V2 model into IR representation. Steps to convert model are listed below: 
+
+- Download the model from below given link using wget command into workspace
+http://download.tensorflow.org/models/object_detection/ssd_inception_v2_coco_2018_01_28.tar.gz
+
+- Unzip the model directory using tar -xvf command into workspace 
+
+- Run the following command to generate IR representation. 
+python mo_tf.py --input_model /home/workspace/ssd_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_use_custom_operations_config extensions/front/tf/ssd_v2_support.json --tensorflow_object_detection_api_pipeline_config /home/workspace/ssd_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels --output_dir /home/workspace/
