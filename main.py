@@ -174,7 +174,7 @@ def infer_on_stream(args, client):
                  # Publish "person/total_count" messages to the MQTT server
                 client.publish("person", json.dumps({"total": total_count}))
             
-            if current_count < last_count:
+            if current_count < last_count and int(time.time() - start_time) >=1: # added lag of 1sec to avoid flickering and unstability
                 duration = int(time.time() - start_time)
                 
                 # Publish "person/duration" messages to the MQTT server
@@ -229,6 +229,8 @@ def processed_and_create_output(output, input_img, threshold):
             cv2.rectangle(input_img, (xmin, ymin), (xmax, ymax), (255,0,0), 2)
             
             current_count = current_count + 1
+            #current_count = 1
+    
     
     return input_img, current_count
     
